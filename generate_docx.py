@@ -1,7 +1,7 @@
 """Convert design document markdown to formatted Word document."""
 import re, os
 from docx import Document
-from docx.shared import Pt, Inches, Cm, RGBColor, Emu
+from docx.shared import Pt, Inches, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.style import WD_STYLE_TYPE
 from docx.oxml.ns import qn

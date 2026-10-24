@@ -3,7 +3,6 @@ import re, os
 from docx import Document
 from docx.shared import Pt, Inches, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.oxml.ns import qn
 
 doc = Document()
 style = doc.styles['Normal']

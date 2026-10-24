@@ -613,4 +613,4 @@ Vibe Sec Platform 已完成全部 5 个阶段的开发，实现了从安全审�
 ---
 
 **报告人**: Vibe Sec Platform 开发团队  
-**联系方式**: [项目主页](https://github.com/yourusername/vibe-sec-platform)
+**联系方式**: [项目主页](https://github.com/dxz0069/vibe-guard)

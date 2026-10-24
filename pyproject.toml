@@ -48,9 +48,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/vibe-sec-platform"
-Repository = "https://github.com/yourusername/vibe-sec-platform"
-Documentation = "https://github.com/yourusername/vibe-sec-platform#readme"
+Homepage = "https://github.com/dxz0069/vibe-guard"
+Repository = "https://github.com/dxz0069/vibe-guard"
+Documentation = "https://github.com/dxz0069/vibe-guard#readme"
 
 [tool.setuptools]
 py-modules = ["main"]

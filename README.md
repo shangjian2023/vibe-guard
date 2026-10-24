@@ -1,8 +1,16 @@
-# Vibe Sec Platform
+# Vibe Guard (Vibe Sec Platform)
+
+[![CI](https://github.com/dxz0069/vibe-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/dxz0069/vibe-guard/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](pyproject.toml)
 
 面向 Vibe Coding 范式的安全审查验证平台，以 Claude Code Skill 形式嵌入 AI 辅助开发全流程。
 
-**版本**: v0.5.0 | **状态**: ✅ 所有阶段完成（Phase 1-5）
+> **English** — Vibe Guard is a security audit & verification platform for the Vibe Coding era. It embeds into AI-assisted development as a Claude Code Skill / CLI, models the compound runtime surface (code · prompts · tools · permissions) with a four-plane graph (VRTM), runs deterministic multi-agent review with tri-state verification (vulnerable / fixed / legitimate-control), and returns AI-consumable remediation bundles instead of PDF reports.
+
+> 仓库名为 **vibe-guard**，代码包名与文档中沿用 **vibe-sec-platform**（安装后 CLI 为 `vibe-sec`），二者指同一项目。
+
+**版本**: v0.5.0 | **状态**: ✅ 所有阶段完成（Phase 1-5），工程验证版（本地单人 Beta），成熟度自评见 [docs/CURRENT_PROJECT_STATUS_2026-08-01.md](docs/CURRENT_PROJECT_STATUS_2026-08-01.md)
 
 ## 项目定位
 
@@ -400,5 +408,5 @@ MIT License
 
 ## 联系方式
 
-- 项目主页: https://github.com/yourusername/vibe-sec-platform
-- 问题反馈: https://github.com/yourusername/vibe-sec-platform/issues
+- 项目主页: https://github.com/dxz0069/vibe-guard
+- 问题反馈: https://github.com/dxz0069/vibe-guard/issues

@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import httpx
 import pytest
@@ -157,9 +157,11 @@ def test_project_finding_queue_clusters_completed_task_results():
         name="Queue fixture",
         path="/tmp/queue-fixture",
     )))
+    # Windows 时钟分辨率约 15ms，连续 datetime.now() 可能取到相同时间戳，
+    # 导致"最新任务"排序不稳定，这里用显式时间戳保证跨平台确定性
     first_task = server.AuditTask(
         id="task-one", project_id=project.id, status=server.AuditTaskStatus.COMPLETED,
-        created_at=datetime.now(),
+        created_at=datetime.now() - timedelta(seconds=10),
     )
     second_task = server.AuditTask(
         id="task-two", project_id=project.id, status=server.AuditTaskStatus.COMPLETED,
