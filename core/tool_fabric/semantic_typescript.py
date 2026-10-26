@@ -11,6 +11,8 @@ try:
 except ImportError:  # pragma: no cover - dependency failures remain explicit in coverage.
     get_parser = None
 
+from ..languages.tree_sitter_gateway import parser_for
+
 from .semantic_javascript import JS_SINKS
 from .semantic_source import FunctionRecord, GUARD_MARKERS, SOURCE_NAME_MARKERS
 
@@ -47,9 +49,14 @@ def build_typescript_semantic_index(
             "file_path": "", "error": "tree-sitter-language-pack is unavailable",
         }])
     parsers = {
-        "typescript": get_parser("typescript"),
-        "tsx": get_parser("tsx"),
+        "typescript": parser_for("typescript"),
+        "tsx": parser_for("tsx"),
     }
+    if not any(parsers.values()):
+        return TypeScriptSemanticIndex([], 0, [{
+            "file_path": "",
+            "error": "tree-sitter parsers unavailable (not cached and download blocked)",
+        }])
     records: List[FunctionRecord] = []
     parse_errors: List[Dict[str, str]] = []
     files_indexed = 0
@@ -64,7 +71,15 @@ def build_typescript_semantic_index(
         relative = target.resolve().relative_to(project_root).as_posix()
         content = target.read_bytes()
         parser_name = "tsx" if target.suffix.lower() == ".tsx" else "typescript"
-        tree = parsers[parser_name].parse(content)
+        parser = parsers[parser_name]
+        if parser is None:
+            # 单一语法缺失（如 tsx 下载失败）时跳过该文件，不影响其余索引。
+            parse_errors.append({
+                "file_path": relative,
+                "error": f"tree-sitter parser unavailable for {parser_name}",
+            })
+            continue
+        tree = parser.parse(content)
         if tree.root_node.has_error:
             parse_errors.append({"file_path": relative, "error": "Tree-sitter parse contains ERROR nodes"})
         records.extend(_records_for_tree(relative, content, tree.root_node))

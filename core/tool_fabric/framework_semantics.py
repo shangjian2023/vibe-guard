@@ -14,6 +14,8 @@ try:
 except ImportError:  # pragma: no cover - dependency is declared but optional at runtime
     get_parser = None
 
+from ..languages.tree_sitter_gateway import parser_for
+
 
 _NATIVE_TREE_SITTER_ENABLED = os.getenv("VIBE_SEC_ENABLE_TREE_SITTER") == "1"
 
@@ -371,16 +373,21 @@ def _analyze_tree_sitter_lines(
     elif not _NATIVE_TREE_SITTER_ENABLED:
         parser_name = "local_line_fallback"
     else:
-        try:
-            tree = get_parser(language).parse(content.encode("utf-8", errors="replace"))
-            if tree.root_node.has_error:
-                parser_failure = "tree_sitter_parse_error"
-                parser_name = "local_line_fallback"
-            else:
-                syntax_validated = True
-        except Exception as exc:  # Native grammar acquisition can fail at runtime.
-            parser_failure = f"tree_sitter_runtime_unavailable:{type(exc).__name__}"
+        parser = parser_for(language)
+        if parser is None:
+            parser_failure = "tree_sitter_unavailable"
             parser_name = "local_line_fallback"
+        else:
+            try:
+                tree = parser.parse(content.encode("utf-8", errors="replace"))
+                if tree.root_node.has_error:
+                    parser_failure = "tree_sitter_parse_error"
+                    parser_name = "local_line_fallback"
+                else:
+                    syntax_validated = True
+            except Exception as exc:  # Native grammar acquisition can fail at runtime.
+                parser_failure = f"tree_sitter_runtime_unavailable:{type(exc).__name__}"
+                parser_name = "local_line_fallback"
     lowered = content.lower()
     frameworks = [
         framework for framework, markers in _FRAMEWORK_MARKERS[suffix].items()
