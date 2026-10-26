@@ -11,7 +11,6 @@
 from __future__ import annotations
 
 import asyncio
-import os
 
 from main import run_audit
 
