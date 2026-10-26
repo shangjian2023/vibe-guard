@@ -70,12 +70,14 @@ class VerificationAgent(BaseAgent):
         "authorization_bypass", "broken_access_control", "code_injection",
         "mcp_tool_poisoning", "hardcoded_secrets", "hardcoded_credentials",
         "missing_authentication", "context_manipulation", "denial_of_service",
+        "mass_assignment", "plaintext_password_comparison",
     }
     STATIC_CONFIRMABLE = {
         "hardcoded_password", "api_key", "secret_leak", "credential_exposure",
         "dependency_vulnerability", "sql_injection", "command_injection", "xss",
         "path_traversal", "code_injection", "ssrf", "unsafe_deserialization",
         "prompt_injection", "mcp_insecurity", "workflow_insecurity",
+        "mass_assignment", "plaintext_password_comparison",
     }
 
     def __init__(

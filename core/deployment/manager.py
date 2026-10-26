@@ -14,6 +14,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
+from ..languages.tree_sitter_gateway import status as tree_sitter_status
+from ..languages.tree_sitter_gateway import warmup as tree_sitter_warmup
 from ..tool_fabric.image_preflight import (
     ContainerImagePreflight,
     ImageRequirement,
@@ -69,6 +71,7 @@ class DeploymentManager:
                 "accepted_environment_variables": llm_variables,
                 "credential_values_exposed": False,
             },
+            "tree_sitter": tree_sitter_status(),
             "required_gaps": required_gaps,
             "optional_gaps": optional_gaps,
             "workspace": {
@@ -169,6 +172,8 @@ class DeploymentManager:
             "doctor": after,
         }
         if not dry_run:
+            # 解析器预热失败不阻塞镜像安装结果，仅作为附加状态报告。
+            report["tree_sitter_warmup"] = tree_sitter_warmup()
             self._write_state(report)
         return report
 

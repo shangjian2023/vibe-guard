@@ -1,6 +1,10 @@
 import asyncio
 import json
 
+import pytest
+
+from conftest import tree_sitter_ready
+
 from agents.audit_agent import AuditAgent
 from core.audit.protocol_analysis import analyze_protocol_file
 from main import run_audit
@@ -165,6 +169,10 @@ def test_mcp_javascript_ast_respects_local_approval_guard(tmp_path):
     assert signals == []
 
 
+@pytest.mark.skipif(
+    not tree_sitter_ready("typescript"),
+    reason="tree-sitter typescript 解析器未缓存且下载不可达",
+)
 def test_mcp_typescript_ast_detects_typed_description_injection_and_ungated_handler(tmp_path):
     (tmp_path / "mcp-server.ts").write_text(
         "import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';\n"

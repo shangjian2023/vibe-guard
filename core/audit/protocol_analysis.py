@@ -19,6 +19,8 @@ try:
 except ImportError:  # pragma: no cover - dependency is declared, but failures stay explicit.
     get_parser = None
 
+from ..languages.tree_sitter_gateway import parser_for
+
 try:
     import yaml
 except ImportError:  # pragma: no cover - dependency is declared, but failures stay explicit.
@@ -335,7 +337,11 @@ def _analyze_mcp_typescript(file_path: str, content: str) -> List[ProtocolSignal
         return []
     source = content.encode("utf-8", errors="replace")
     parser_name = "tsx" if Path(file_path).suffix.lower() == ".tsx" else "typescript"
-    tree = get_parser(parser_name).parse(source)
+    parser = parser_for(parser_name)
+    if parser is None:
+        # 解析器未缓存且下载被阻断时降级，不击穿 MCP 审计通道。
+        return []
+    tree = parser.parse(source)
     registration_names = {"tool", "registerTool", "resource", "registerResource"}
     signals: List[ProtocolSignal] = []
     for node in _walk_tree_sitter_nodes(tree.root_node):

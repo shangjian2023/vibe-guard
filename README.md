@@ -10,7 +10,7 @@
 
 > 仓库名为 **vibe-guard**，代码包名与文档中沿用 **vibe-sec-platform**（安装后 CLI 为 `vibe-sec`），二者指同一项目。
 
-**版本**: v0.5.0 | **状态**: ✅ 所有阶段完成（Phase 1-5），工程验证版（本地单人 Beta），成熟度自评见 [docs/CURRENT_PROJECT_STATUS_2026-08-01.md](docs/CURRENT_PROJECT_STATUS_2026-08-01.md)
+**版本**: v0.6.0 | **状态**: ✅ 所有阶段完成（Phase 1-5），工程验证版（本地单人 Beta），成熟度自评见 [docs/CURRENT_PROJECT_STATUS_2026-08-01.md](docs/CURRENT_PROJECT_STATUS_2026-08-01.md)
 
 ## 项目定位
 
@@ -130,6 +130,11 @@ vibe-sec setup --include-codeql --json
 ```
 
 安装和更新由 `manifests/tool-images.lock.json` 锁定。`doctor` 只报告凭据是否配置，不读取或输出 Key；只有状态为 `READY` 的镜像能力会暴露给智能体。
+
+AST 审计通道依赖 tree-sitter 解析器，首次使用会从 GitHub 下载（`setup` 自动预热，`doctor --json` 的 `tree_sitter` 段报告就绪状态）。离线或受限网络环境：
+
+- 设置 `VIBE_SEC_TREE_SITTER_CACHE` 指向预置解析器缓存目录，可直接拷贝已下载缓存（当前缓存位置见 `doctor --json` 输出的 `tree_sitter.cache_dir` 字段）；
+- 或设置 `VIBE_SEC_DISABLE_TREE_SITTER=1` 跳过全部 AST 通道，平台自动降级到文本/正则分析，不会中断审计。
 
 ### Docker 一键部署
 

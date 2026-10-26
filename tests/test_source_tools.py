@@ -3,6 +3,10 @@
 import asyncio
 from pathlib import Path
 
+import pytest
+
+from conftest import tree_sitter_ready
+
 from core.tool_fabric import ArtifactStore, ToolGateway, ToolRequest, build_source_registry
 
 
@@ -167,6 +171,10 @@ def test_javascript_semantic_flow_rejects_typescript_without_claiming_parser_sup
     assert "requires a JavaScript or JSX source file" in execution.error
 
 
+@pytest.mark.skipif(
+    not tree_sitter_ready("typescript"),
+    reason="tree-sitter typescript 解析器未缓存且下载不可达",
+)
 def test_typescript_semantic_flow_traces_typed_cross_file_source_to_sink(tmp_path):
     project, gateway = build_gateway(tmp_path)
     (project / "service.ts").write_text(

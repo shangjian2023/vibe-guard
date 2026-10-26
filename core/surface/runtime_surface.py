@@ -25,6 +25,8 @@ try:
 except ImportError:  # pragma: no cover - declared dependency, failure is recorded in coverage.
     get_parser = None
 
+from ..languages.tree_sitter_gateway import parser_for
+
 try:
     import yaml
 except ImportError:  # pragma: no cover - declared dependency, failure is recorded in coverage.
@@ -645,8 +647,15 @@ class RuntimeSurfaceBuilder:
         try:
             parser = self._parser_cache.get(language)
             if parser is None:
-                parser = get_parser(language)
+                parser = parser_for(language)
                 self._parser_cache[language] = parser
+            if parser is None:
+                # 下载被阻断（离线/受限网络），走既有降级路径。
+                self._tree_sitter_failed = True
+                self._coverage["extractors"]["tree_sitter"] = False
+                self._record_javascript_fallback(file_path, "tree_sitter_unavailable")
+                self._extract_javascript_fallback(file_path, content)
+                return
             tree = parser.parse(source)
         except Exception as exc:  # Parser packs can fail while downloading native grammars.
             self._tree_sitter_failed = True
