@@ -131,6 +131,11 @@ vibe-sec setup --include-codeql --json
 
 安装和更新由 `manifests/tool-images.lock.json` 锁定。`doctor` 只报告凭据是否配置，不读取或输出 Key；只有状态为 `READY` 的镜像能力会暴露给智能体。
 
+AST 审计通道依赖 tree-sitter 解析器，首次使用会从 GitHub 下载（`setup` 自动预热，`doctor --json` 的 `tree_sitter` 段报告就绪状态）。离线或受限网络环境：
+
+- 设置 `VIBE_SEC_TREE_SITTER_CACHE` 指向预置解析器缓存目录，可直接拷贝已下载缓存（当前缓存位置见 `doctor --json` 输出的 `tree_sitter.cache_dir` 字段）；
+- 或设置 `VIBE_SEC_DISABLE_TREE_SITTER=1` 跳过全部 AST 通道，平台自动降级到文本/正则分析，不会中断审计。
+
 ### Docker 一键部署
 
 Docker 部署提供 Web 前端、REST API、SQLite 状态和 VRTM 快照的统一运行边界：
