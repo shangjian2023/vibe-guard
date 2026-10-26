@@ -10,7 +10,7 @@
 
 > 仓库名为 **vibe-guard**，代码包名与文档中沿用 **vibe-sec-platform**（安装后 CLI 为 `vibe-sec`），二者指同一项目。
 
-**版本**: v0.5.0 | **状态**: ✅ 所有阶段完成（Phase 1-5），工程验证版（本地单人 Beta），成熟度自评见 [docs/CURRENT_PROJECT_STATUS_2026-08-01.md](docs/CURRENT_PROJECT_STATUS_2026-08-01.md)
+**版本**: v0.6.0 | **状态**: ✅ 所有阶段完成（Phase 1-5），工程验证版（本地单人 Beta），成熟度自评见 [docs/CURRENT_PROJECT_STATUS_2026-08-01.md](docs/CURRENT_PROJECT_STATUS_2026-08-01.md)
 
 ## 项目定位
 
