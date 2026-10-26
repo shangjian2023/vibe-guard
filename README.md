@@ -62,6 +62,21 @@ Recon → Surface → Audit(并行) → Merge → Verify → Remediate → Retes
 - Skill Relay 状态机追踪整改包流转
 - 自动复测验证修复效果
 
+## 验证证据（基准快照）
+
+以下数字来自对仓库自带靶标（`tests/fixtures/`，Web + Agent 漏洞混合）的一次完整确定性审查。环境：Windows 11 / Python 3.11 / v0.6.0 / 无 LLM / 未启用容器工具，单机实测（2026-10-26）：
+
+| 指标 | 数值 |
+| --- | --- |
+| 端到端耗时 | ≈ 1.3 s |
+| 检出漏洞 | 16 个（critical 2 / high 14） |
+| 覆盖类型 | 提示词注入 ×5、硬编码口令 ×3、过度代理 ×3、SQL 注入 ×2、命令注入 / 代码注入 / 路径穿越 ×1 |
+| 候选复核 | 16 个候选 → 确定性复核剔除 2 个误报候选 → 14 个保守保留待证据 |
+| 整改输出 | 14 个 RemediationBundle（含 ai_patch_prompt、复测计划与验收标准） |
+| 测试套件 | 227 通过 / 7 跳过（Ubuntu + Windows 双平台 CI） |
+
+无 LLM 配置下，证据不足的结论保守保留为 `needs_evidence` 而非直接判定（见 [note/release/0.5.0.md](note/release/0.5.0.md) 已知限制），这是有意设计。复现：按「作为 Python 库使用」示例对 `tests/fixtures/` 运行 `run_audit()`，或执行 `pytest tests/ -q`。
+
 ## 系统架构
 
 ### 五层架构
