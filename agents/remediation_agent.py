@@ -209,6 +209,22 @@ PROFILES: Dict[str, RemediationProfile] = {
         "Authorized runtime configuration can still obtain the rotated key.",
         "The key moves behind a secret-provider trust boundary with no client-side exposure edge.",
     ),
+    "mass_assignment": RemediationProfile(
+        PatchStrategy.INPUT_VALIDATION,
+        "Stop binding request fields directly onto privileged model attributes.",
+        ("Use an explicit field allowlist for user-driven construction.", "Force server-side defaults for admin/role flags."),
+        "A crafted registration or update payload cannot grant itself privileged flags.",
+        "Ordinary registration and profile updates keep working with the allowlist.",
+        "The request-data edge reaches the model only through an allowlist that excludes privileged fields.",
+    ),
+    "plaintext_password_comparison": RemediationProfile(
+        PatchStrategy.CONFIGURATION_FIX,
+        "Store only password hashes and verify with a constant-time comparison.",
+        ("Hash at write time with a memory-hard KDF.", "Compare via a dedicated password verifier, never ==."),
+        "The stored credential is a salted hash and the comparison leaks no usable secret.",
+        "Login with the correct password still succeeds after migration.",
+        "The credential store holds no recoverable plaintext edge, and comparison happens inside a verifier boundary.",
+    ),
     "prompt_injection": RemediationProfile(
         PatchStrategy.ARCHITECTURE_CHANGE,
         "Treat external content as data and enforce policy at every model-to-tool boundary.",
