@@ -158,9 +158,34 @@ class AuditAgent(BaseAgent):
                     r'f".*?SELECT.*?\{.*?\}.*?"',
                     r"f'.*?SELECT.*?\{.*?\}.*?'",
                     r'execute\(.*?["\']%\w+["\']',
+                    # 查询字符串在 execute 调用之外拼接（q = "...WHERE x = " + input，
+                    # 含 '= "' 这类双引号收尾写法）。
+                    r'\b(?:SELECT|INSERT|UPDATE|DELETE|DROP)\b[^"\'\n]*["\']{1,2}\s*\+\s*[\w.\[\](]',
+                    r'\+\s*["\']{1,2}[^"\'\n]*\b(?:SELECT|INSERT|UPDATE|DELETE|DROP)\b',
+                    # % 格式化的 SQL（"... = %s" % user_id），占位符不必紧贴引号。
+                    r'\b(?:SELECT|INSERT|UPDATE|DELETE|DROP)\b[^"\'\n]*["\']{1,2}\s*%\s*[\w(\[]',
                 ],
                 "severity": Severity.HIGH,
                 "description": "可能的 SQL 注入：用户输入直接拼接到查询中",
+            },
+            "mass_assignment": {
+                "patterns": [
+                    # 特权字段（admin/role 等）从请求数据取值：User(..., admin=data.get('admin'))
+                    r'\b(?:admin|is_admin|is_superuser|is_staff|role)\s*=\s*[\w.]*\.get\(',
+                    r'\b(?:admin|is_admin|is_superuser|is_staff|role)\s*=\s*(?:request|payload|body|form|args|params|json|data)\b',
+                ],
+                "severity": Severity.HIGH,
+                "description": "可能的特权字段自赋值：请求数据未经允许清单直接写入 admin/role 等特权字段",
+            },
+            "plaintext_password_comparison": {
+                "patterns": [
+                    # 只匹配与存储凭据对象（x.password 属性）的比较，避免把
+                    # 注册表单的"密码确认"比对（data['password'] == data['confirm']）误报。
+                    r'\.\s*password\s*==',
+                    r'==\s*\w+\.\s*password\b',
+                ],
+                "severity": Severity.MEDIUM,
+                "description": "可能的明文密码比较：疑似未哈希存储的密码被直接比对",
             },
             "xss": {
                 "patterns": [
