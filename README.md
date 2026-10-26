@@ -194,42 +194,32 @@ Codex 使用 `-Agent codex`；项目级安装使用 `-Agent project`。安装器
 
 #### 作为 Python 库使用
 
+`main.run_audit()` 是库形态的稳定入口，默认走确定性流水线，不依赖 LLM 凭据与外部网络：
+
 ```python
-from core.orchestrator.orchestrator import OrchestratorAgent, OrchestrationConfig
-from core.agents.registry import AgentRegistry
-from core.llm.openai_service import OpenAIService
+import asyncio
 
-# 初始化
-llm_service = OpenAIService(api_key="your-api-key")
-registry = AgentRegistry()
+from main import run_audit
 
-# 注册 Agent
-registry.register(AgentType.RECON, ReconAgent)
-registry.register(AgentType.SURFACE, SurfaceAgent, dependencies=[AgentType.RECON])
-registry.register(AgentType.AUDIT, AuditAgent, dependencies=[AgentType.SURFACE])
-
-# 创建编排器
-orchestrator = OrchestratorAgent(
-    llm_service=llm_service,
-    agent_registry=registry,
-    config=OrchestrationConfig(),
+result = asyncio.run(
+    run_audit(
+        "/path/to/project",
+        audit_scope={
+            "web_vulns": True,     # Web 漏洞
+            "agent_vulns": True,   # 智能体漏洞
+            "mcp_vulns": True,     # MCP 风险
+            "secret_leaks": True,  # 密钥泄露
+        },
+        output_format="markdown",
+    )
 )
 
-# 执行审查
-result = await orchestrator.run({
-    "project_path": "/path/to/project",
-    "audit_scope": {
-        "web_vulns": True,
-        "agent_vulns": True,
-        "secret_leaks": True,
-    },
-    "output_format": "markdown",
-})
-
-# 获取结果
-print(result.data["summary"])
-print(f"发现 {len(result.data['verified_findings'])} 个漏洞")
+print(result["summary"])
+print(f"候选漏洞 {len(result['merged_findings'])} 个")
+print(f"整改包 {len(result['remediation_bundles'])} 个")
 ```
+
+需要 LLM 深度分析时传 `use_llm=True` 并设置 `VIBE_SEC_DEEPSEEK_API_KEY`（或 `DEEPSEEK_API_KEY`）；其他提供方参见 `core.llm_service.create_configured_llm_service`。
 
 ## 项目结构
 
@@ -240,71 +230,52 @@ vibe-sec-platform/
 │   ├── metadata.json                   # Skill 元数据
 │   └── references/                     # 知识库（渐进式披露）
 │       ├── catalog.json                # 漏洞类别目录
-│       ├── checklists/                 # 漏洞检查清单
-│       │   ├── web/                    # Web 漏洞
-│       │   ├── agent/                  # Agent 漏洞
-│       │   └── secrets/                # 密钥泄露
-│       ├── patterns/                   # 漏洞模式库
-│       ├── adapters/                   # 语言适配器
-│       └── examples/                   # 真实案例
+│       └── checklists/                 # 漏洞检查清单
+│           ├── web/                    # Web 漏洞
+│           └── agent/                  # Agent 漏洞
 │
-├── core/                               # 核心基础设施
-│   ├── agents/
-│   │   ├── base.py                     # BaseAgent + TaskHandoff
-│   │   ├── registry.py                 # Agent 注册中心
-│   │   └── executor.py                 # Agent 执行器
-│   ├── orchestrator/
-│   │   └── orchestrator.py             # 确定性编排器
-│   ├── runtime/
-│   │   ├── tool_runtime.py             # 工具运行时
-│   │   ├── permission_policy.py        # 权限策略
-│   │   └── session_store.py            # 会话存储
-│   ├── surface/
-│   │   ├── runtime_surface.py          # 攻击面画像
-│   │   ├── runtime_surface_graph.py    # 攻击面关系图
-│   │   └── risk_chain.py               # 风险链
-│   ├── reasoning/
-│   │   └── reasoning_guard.py          # 推理监护
-│   ├── verification/
-│   │   ├── harness.py                  # 验证沙箱
-│   │   ├── fuzzing.py                  # Fuzzing Harness
-│   │   └── browser_executor.py         # 浏览器证据采集
-│   ├── remediation/
-│   │   ├── remediation_bundle.py       # 整改包生成
-│   │   └── skill_relay.py              # Skill Relay 状态机
-│   └── reporting/
-│       ├── unified_report.py           # 统一报告生成
-│       └── output_formatter.py         # 多格式输出
+├── core/                               # 核心引擎
+│   ├── agents/                         # BaseAgent + TaskHandoff + AgentRegistry
+│   ├── agent_runtime/                  # Agent 运行时（ReAct 循环、状态机、工具护栏、重试）
+│   ├── orchestrator/                   # 确定性编排器
+│   ├── audit/                          # 审计核心（候选聚类、复核预算、扫描器信号）
+│   ├── surface/                        # 攻击面画像、风险链、威胁建模
+│   ├── vrtm/                           # VRTM 运行面建模（声明、生命周期、快照导出）
+│   ├── tool_fabric/                    # 扫描器适配、语义分析、工具镜像预检
+│   ├── harness/                        # 验证 Harness（闸门、触发策略、返回协议）
+│   ├── verification/                   # 漏洞验证（授权、PoC 协议、环境/服务运行时）
+│   ├── remediation/                    # 整改包、审批签名、Skill Relay、树快照
+│   ├── policy/                         # 触发与闭环策略
+│   ├── reasoning/                      # 推理监护（ReasoningGuard）
+│   ├── runtime/                        # Docker / 浏览器执行器 + 权限策略
+│   ├── plugin/                         # 插件系统
+│   ├── session/                        # RunSession 会话模型与存储
+│   ├── deployment/                     # 工具镜像安装与 doctor 就绪检查
+│   ├── cache.py / llm_service.py       # 多级缓存 / LLM 服务抽象
+│   └── reporting/                      # 多格式输出（Markdown / JSON / Claude Code / HTML）
 │
-├── agents/                             # 智能体实现
-│   ├── recon_agent.py
-│   ├── surface_agent.py
-│   ├── audit_agent.py
-│   ├── verification_agent.py
-│   ├── remediation_agent.py
-│   └── regression_agent.py
+├── agents/                             # 六个领域 Agent 实现
+│   ├── recon_agent.py                  # 信息收集
+│   ├── surface_agent.py                # 攻击面建模
+│   ├── audit_agent.py                  # 漏洞审查（并行）
+│   ├── verification_agent.py           # 漏洞验证
+│   ├── remediation_agent.py            # 整改建议
+│   └── regression_agent.py             # 回归测试
 │
-├── tools/                              # 工具实现
-│   ├── base.py
-│   ├── file_tools.py
-│   ├── analysis_tools.py
-│   ├── execution_tools.py
-│   └── knowledge_tools.py
-│
-├── api/                                # REST API (可选)
-│   ├── main.py
-│   ├── routes/
-│   └── models/
-│
-├── tests/                              # 测试
-│   ├── unit/
-│   ├── integration/
-│   └── fixtures/
-│
-└── docs/                               # 文档
-    ├── ARCHITECTURE.md
-    ├── SKILL_DEVELOPMENT.md
-    └── CONTRIBUTING.md
+├── api/                                # REST API + 状态存储（FastAPI）
+├── frontend-v2/                        # Web 管理界面（Vue 3）
+├── container/                          # 扫描器容器（semgrep/gitleaks/bandit/trivy、nuclei、CodeQL 可选）
+├── tools/                              # 工具基类
+├── plugins/                            # 插件示例
+├── knowledge_base/                     # 审计方法论知识库
+├── scripts/                            # 安装 / 部署 / Skill 安装脚本（ps1 + sh）
+├── deploy/                             # Web/API 容器镜像与入口
+├── manifests/                          # 工具镜像版本锁定
+├── compose.yml / compose.llm.yml       # Docker Compose 编排
+├── tests/                              # 测试与靶标 fixtures
+├── main.py                             # CLI 与库入口（vibe-sec）
+├── docs/                               # 设计与架构文档
+└── note/                               # 发布说明与调研归档
 ```
 
 ## 技术栈
@@ -409,7 +380,7 @@ MIT License
 
 欢迎贡献代码、报告问题或提出改进建议！
 
-请参阅 [CONTRIBUTING.md](docs/CONTRIBUTING.md) 了解详情。
+提交前请阅读 [CONTRIBUTING.md](docs/CONTRIBUTING.md)（Issue / PR 流程与本地开发指南）。安全问题请按 [SECURITY.md](SECURITY.md) 私密报告，不要开公开 Issue。项目治理与维护者职责见 [GOVERNANCE.md](GOVERNANCE.md)，第三方组件许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
 ## 联系方式
 
