@@ -12,6 +12,14 @@
 
 **版本**: v0.5.0 | **状态**: ✅ 所有阶段完成（Phase 1-5），工程验证版（本地单人 Beta），成熟度自评见 [docs/CURRENT_PROJECT_STATUS_2026-08-01.md](docs/CURRENT_PROJECT_STATUS_2026-08-01.md)
 
+## Vibe Guard 宣传片
+
+[![Vibe Guard 宣传片封面](docs/vibe-guard-promo-cover.png)](docs/vibe-guard-promo-1080p60.mp4)
+
+[观看宣传片（1080p / 60 fps，59.25 秒）](docs/vibe-guard-promo-1080p60.mp4) · [中文字幕（SRT）](docs/vibe-guard-promo.zh.srt) · [拍摄与素材说明](docs/VIDEO.md)
+
+实拍界面基于上游 v0.24.1（`16a81a3`），本 fork 的 main 未升级。画面使用本地授权静态样例，不代表动态验证或自动复测已接通；具体数据与演示边界见视频说明。
+
 ## 项目定位
 
 - **目标用户**: 独立开发者 / 小团队
